@@ -4,8 +4,6 @@ import { useEffect, useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Download, Palette, Type, Image as LucideImage, Sparkles } from "lucide-react";
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image as PDFImage } from "@react-pdf/renderer";
-import '@fontsource-variable/inter';
-import '@fontsource-variable/montserrat';
 
 /* ---------- types ---------- */
 type TokenCategory = Record<string, string>
