@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { Download, Palette, Type, Image as LucideImage, Sparkles } from "lucide-react";
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image as PDFImage } from "@react-pdf/renderer";
+import '@fontsource-variable/inter';
+import '@fontsource-variable/montserrat';
 
 /* ---------- types ---------- */
 type TokenCategory = Record<string, string>
@@ -11,6 +15,7 @@ interface TokenData {
   font: TokenCategory
   spacing: TokenCategory
   radius: TokenCategory
+  illustrations?: string[]
 }
 
 interface FigmaTokenFormat {
@@ -26,12 +31,14 @@ function toFigmaFormat(tokens: TokenData): FigmaTokenFormat {
   const result: FigmaTokenFormat = {}
 
   for (const category of Object.keys(tokens) as (keyof TokenData)[]) {
-    result[category] = {}
-
+    // Only process if the category is an object (not the 'illustrations' array)
     const categoryTokens = tokens[category]
-    for (const key of Object.keys(categoryTokens)) {
-      result[category][key] = {
-        value: categoryTokens[key]
+    if (typeof categoryTokens === 'object' && !Array.isArray(categoryTokens) && categoryTokens !== null) {
+      result[category] = {}
+      for (const key of Object.keys(categoryTokens)) {
+        result[category][key] = {
+          value: (categoryTokens as TokenCategory)[key]
+        }
       }
     }
   }
@@ -67,6 +74,66 @@ const COLOR_ORDER = [
   'textLight', 'textDark',
   'success', 'warning', 'error'
 ]
+
+const getGoogleFont = (font: string) => {
+  if (!font) return 'Inter, sans-serif';
+  if (font.toLowerCase().includes('montserrat')) return 'Montserrat, sans-serif';
+  if (font.toLowerCase().includes('dm sans')) return 'DM Sans, sans-serif';
+  return 'Inter, sans-serif';
+};
+
+const BrandSheetPDF = ({ tokens, brandName, fontFamily }: any) => (
+  <Document>
+    <Page size="A4" style={{ padding: 32, fontFamily: 'Helvetica' }}>
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ fontSize: 32, fontWeight: 700 }}>{brandName || 'Your Brand'} Brand Sheet</Text>
+      </View>
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: 600 }}>Color Palette</Text>
+        <View style={{ flexDirection: 'row', marginTop: 8 }}>
+          {Object.entries(tokens.color).map(([k, v]: any) => (
+            <View key={k} style={{ width: 48, height: 48, backgroundColor: v, marginRight: 8, borderRadius: 8, border: '1px solid #eee' }} />
+          ))}
+        </View>
+      </View>
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: 600 }}>Typography</Text>
+        <Text style={{ fontSize: 16, fontFamily }}>{fontFamily}</Text>
+      </View>
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: 600 }}>Buttons</Text>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+          <View style={{ backgroundColor: tokens.color.primary, color: '#fff', padding: 8, borderRadius: 8, marginRight: 8 }}>
+            <Text>Primary Button</Text>
+          </View>
+          <View style={{ border: '1px solid #ccc', padding: 8, borderRadius: 8 }}>
+            <Text>Secondary Button</Text>
+          </View>
+        </View>
+      </View>
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: 600 }}>Icons</Text>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+          <Text>🎨</Text>
+          <Text>🔤</Text>
+          <Text>✨</Text>
+        </View>
+      </View>
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: 600 }}>3D Illustrations</Text>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+          {tokens.illustrations && tokens.illustrations.map((src: string, i: number) => (
+            src.startsWith('http') ? (
+              <PDFImage key={i} src={src} style={{ width: 64, height: 64, marginRight: 8 }} />
+            ) : (
+              <Text key={i} style={{ width: 64, height: 64, marginRight: 8, fontSize: 10 }}>{src}</Text>
+            )
+          ))}
+        </View>
+      </View>
+    </Page>
+  </Document>
+);
 
 export default function PreviewPage() {
   // All hooks at the top
@@ -318,9 +385,9 @@ export default function PreviewPage() {
           <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-10 mb-8" style={{
             background: theme === 'dark' ? tokens?.color.backgroundDark : tokens?.color.backgroundLight,
             color: theme === 'dark' ? tokens?.color.textDark : tokens?.color.textLight,
-            fontFamily: tokens?.font.family
+            fontFamily: getGoogleFont(tokens?.font.family || '')
           }}>
-            <h1 className="text-5xl font-bold mb-4" style={{ fontFamily: tokens?.font.family }}>{`Welcome to ${brandName || 'your brand'}`}</h1>
+            <h1 className="text-5xl font-bold mb-4" style={{ fontFamily: getGoogleFont(tokens?.font.family || '') }}>{`Welcome to ${brandName || 'your brand'}`}</h1>
             <p className="mb-6 text-lg">This is how your design tokens look in action. Every element follows your brand guidelines.</p>
             <div className="flex gap-4 mb-8">
               <button className="px-6 py-2 rounded-full font-semibold text-white" style={{ background: tokens?.color.primary }}>Primary Button</button>

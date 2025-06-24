@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
   "color": { "primary": "...", "background": "...", "text": "..." },
   "font": { "family": "...", "base": "...", "h1": "..." },
   "spacing": { "sm": "...", "md": "...", "lg": "..." },
-  "radius": { "md": "..." }
+  "radius": { "md": "..." },
+  "illustrations": ["3D illustration prompt or URL 1", "3D illustration prompt or URL 2", "3D illustration prompt or URL 3"]
 }
 
 Do not include markdown or explanation.
